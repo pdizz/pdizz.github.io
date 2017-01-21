@@ -46,8 +46,8 @@ tests, and if it doesn't, you may want to use a different library.
 #### Tests That Can Never Fail, or Falsifying the Results
 
 This is somewhat common and can be tricky to spot. Sometimes, especially when using mocks, you can end up testing 
-artifical results that you create within your test, thus the test could never fail. An simplified example of this, 
-when a model returns the result of a stubbed database query.
+artifical results that you create within your test, thus the test could never fail. A simplified example of this is
+when a model returns the result of a stubbed call to the database.
 
 {% highlight php startinline %}
 public function testFetchRowShouldReturnExpectedRow()
