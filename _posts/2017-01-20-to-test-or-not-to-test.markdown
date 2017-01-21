@@ -40,8 +40,8 @@ needs to be updated anyway.
 #### Language Features and Third-party Libraries
 
 For example, testing that a call to a type-hinted method fails if passed the wrong type is really just testing that PHP
-works. Testing methods of third party libraries should be avoided as well. The libraries you use should have their own
-tests, and if they don't, you may want to use a different library.
+works. Testing methods of third party libraries should be avoided as well. Any library you use should have its own
+tests, and if it doesn't, you may want to use a different library.
 
 #### Tests That Can Never Fail, or Falsifying the Results
 
