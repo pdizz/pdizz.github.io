@@ -26,9 +26,7 @@ Create a new project and install some libraries. We'll need behat itself, an ass
 and an http client to make calls to the API.
 
 {% highlight bash %}
-composer require behat/behat
-composer require guzzlehttp/guzzle
-composer require phpunit/phpunit
+composer require behat/behat phpunit/phpunit guzzlehttp/guzzle
 {% endhighlight %}
 
 Behat tests are written using the human-readable [Gherkin](https://en.wikipedia.org/wiki/Cucumber_(software)#Gherkin_.28Language.29)
