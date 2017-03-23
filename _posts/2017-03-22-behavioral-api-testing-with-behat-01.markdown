@@ -37,7 +37,7 @@ When Behat runs a feature file it loads a php class called a feature context, an
 to a method in the feature context which has the php code to support that test step.
 
 Initialize a new behat project in your project directory. This will create an empty file, 
-features/bootstrap/FeatureContext.php, that we'll use to support our test steps.
+`features/bootstrap/FeatureContext.php`, that we'll use to support our test steps.
 
 {% highlight bash %}
 vendor/bin/behat --init
@@ -60,7 +60,7 @@ Feature: pdizz.github.io site
 {% endhighlight %}
 
 Now for the code. We can use the __construct() method to set up our http client. Then we need methods to support our 
-first two sentences "When I request the home page" and "Then I should get a successful response". Behat uses regex
+first two sentences `When I request the home page` and `Then I should get a successful response`. Behat uses regex
 to match the sentence in the feature file with annotations in the FeatureContext docblocks. Our FeatureContext.php
 should look something like this:
         
@@ -128,10 +128,10 @@ class FeatureContext implements Context
 }
 {% endhighlight %}
     
-Notice the annotations in the docblocks for `iRequestTheHomePage()` and `iShouldGetASuccessfulResponse()`?
+Notice the annotations in the docblocks for `iRequestTheHomePage()` and `iShouldGetASuccessfulResponse()`.
 Annotations should start with one of the keywords `@Given`, `@When` or `@Then` and step definitions should
 start with `Given`, `When`, `Then`, `And`, or `But`. These words are interchangeable for readability, so the 
-sentence "When I request the home page" will still match up with `@Given /^I request the home page$/`
+sentence `When I request the home page` will still match up with `@Given /^I request the home page$/`
 
 Let's try running the feature
 
