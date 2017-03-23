@@ -36,8 +36,8 @@ composed of a number of sentences that are the testing steps for that scenario.
 When Behat runs a feature file it loads a php class called a feature context, and matches each sentence
 to a method in the feature context which has the php code to support that test step.
 
-Initialize a new behat project in your project directory. This will create an empty `features/bootstrap/FeatureContext.php` 
-that we'll use to support our test steps
+Initialize a new behat project in your project directory. This will create an empty file, 
+features/bootstrap/FeatureContext.php, that we'll use to support our test steps.
 
 {% highlight bash %}
 vendor/bin/behat --init
@@ -45,9 +45,10 @@ vendor/bin/behat --init
 
 ### A Basic Feature
 
-Now we're ready to write the first feature: `features/pdizz.github.io.feature`
+Now we're ready to write the first feature...
 
 {% highlight text %}
+# features/pdizz.github.io.feature
 Feature: pdizz.github.io site
     As a developer
     I need a blog
@@ -60,7 +61,7 @@ Feature: pdizz.github.io site
 
 Now for the code. We can use the __construct() method to set up our http client. Then we need methods to support our 
 first two sentences "When I request the home page" and "Then I should get a successful response". Behat uses regex
-to match the sentence in the .feature file with annotations in the FeatureContext docblocks. Our FeatureContext.php
+to match the sentence in the feature file with annotations in the FeatureContext docblocks. Our FeatureContext.php
 should look something like this:
         
 {% highlight php startinline %} 
@@ -127,7 +128,7 @@ class FeatureContext implements Context
 }
 {% endhighlight %}
     
-Notice the annotations in the docblocks for `iRequestTheHomePage()` and `iShouldGetASuccessfulResponse()`.
+Notice the annotations in the docblocks for `iRequestTheHomePage()` and `iShouldGetASuccessfulResponse()`?
 Annotations should start with one of the keywords `@Given`, `@When` or `@Then` and step definitions should
 start with `Given`, `When`, `Then`, `And`, or `But`. These words are interchangeable for readability, so the 
 sentence "When I request the home page" will still match up with `@Given /^I request the home page$/`
@@ -153,7 +154,7 @@ Feature: pdizz.github.io site
 ### Parameters in Step Definitions
 
 We have a couple steps defined, but they are not very re-usable in their current state. We can add parameters to our
-step definitions to make the much more useful. Let's modify `iRequestTheHomePage()` first. We need to change the 
+step definitions to make them much more useful. Let's modify `iRequestTheHomePage()` first. We need to change the 
 annotation to use regex to capture the parts of the sentence we want to be parameterized, the url in this case, 
 and change the method signature to include the $url parameter.
  
