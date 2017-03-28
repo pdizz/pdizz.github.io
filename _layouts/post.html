@@ -12,4 +12,17 @@ layout: default
     {{ content }}
   </div>
 
+  {% if page.series %}
+  <div class="series-list">
+    <h3>More in this series:</h3>
+    <ol>
+    {% assign posts = site.posts | where:"series",page.series | sort: 'order'%}
+      {% for post in posts %}
+      <li><a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a></li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endif %}
+
+
 </article>

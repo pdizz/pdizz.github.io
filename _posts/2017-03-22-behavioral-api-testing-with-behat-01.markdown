@@ -3,6 +3,8 @@ layout: post
 title:  "Behavioral API testing with Behat"
 date:   2017-03-22 0:00:00 -0700
 categories: testing
+series: behat-api
+order: 1
 ---
 
 Recently I've been tasked with refactoring and modernizing some legacy applications, and I was looking 
@@ -87,10 +89,6 @@ class FeatureContext implements Context
 
     /**
      * Initializes context.
-     *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
      */
     public function __construct()
     {
