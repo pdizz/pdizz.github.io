@@ -10,7 +10,8 @@ order: 2
 ### Profiles
 
 Before long we're going to want to run our tests against different environments. To accomplish this we can configure 
-profiles for our test suite in `behat.yml`.
+profiles for our test suite in `behat.yml`. (Check out the behat repo to follow along 
+[github.com/pdizz/pdizz_behat](https://github.com/pdizz/pdizz_behat))
 
 {% highlight yaml %}
 # behat.yml
@@ -66,8 +67,10 @@ class FeatureContext implements Context
      */
     public function __construct($baseUrl)
     {
-        $this->httpClient = new GuzzleHttp\Client();
         $this->baseUrl = $baseUrl;
+        $this->httpClient = new GuzzleHttp\Client([
+            'base_uri' => $baseUrl
+        ]);
     }
 
     /**
@@ -76,7 +79,7 @@ class FeatureContext implements Context
     public function iRequest($route)
     {
         try {
-            $this->response = $this->httpClient->get($this->baseUrl . $route);
+            $this->response = $this->httpClient->get($route);
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             $this->request = $e->getRequest();
             if ($e->hasResponse()) {
@@ -107,7 +110,7 @@ class FeatureContext implements Context
 
 Now we can remove the hard-coded base url from our test steps and just specify the route...
 
-{% highlight yaml %}
+{% highlight text %}
 Feature: pdizz.github.io site
     As a developer
     I need a blog

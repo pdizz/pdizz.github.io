@@ -211,5 +211,6 @@ article using the step definitions we already have:
         Then I should get a "200" response
 {% endhighlight %}
 
-In the next article we'll expand on our step definitions and see some more techniques useful in testing different
-types of API's.
+I've created a behat demo project to go along with this series if you want to follow along [github.com/pdizz/pdizz_behat](https://github.com/pdizz/pdizz_behat). 
+In the next article we'll expand on our step definitions and see some more techniques useful in testing different types 
+of API's.

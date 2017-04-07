@@ -14,7 +14,7 @@ layout: default
 
   {% if page.series %}
   <div class="series-list">
-    <h3>More in this series:</h3>
+    <h3>Articles in this series:</h3>
     <ol>
     {% assign posts = site.posts | where:"series",page.series | sort: 'order'%}
       {% for post in posts %}
