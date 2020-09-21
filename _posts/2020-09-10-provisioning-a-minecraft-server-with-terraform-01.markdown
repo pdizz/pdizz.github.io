@@ -29,4 +29,23 @@ Finish creating the user and copy or download the user's access key, then create
     aws_secret_access_key = thesecretkeygoeshere
 {% endhighlight %}
 
-Now we're ready to start building AWS resources with terraform.
+### Initializing a Terraform Project
+
+Create a file `main.tf` at the root of your project directory and define the AWS provider with your region
+
+{% highlight text %}
+    provider "aws" {
+        region = "us-west-2"
+    }
+{% endhighlight %}
+
+In your project directory run `terraform init` to install the AWS provider plugins and initialize your project.
+
+{% highlight text %}
+    Initializing provider plugins...
+    - Finding latest version of hashicorp/aws...
+    - Installing hashicorp/aws v3.7.0...
+    - Installed hashicorp/aws v3.7.0 (signed by HashiCorp)
+{% endhighlight %}
+
+Now we're ready to start building AWS resources with Terraform.
