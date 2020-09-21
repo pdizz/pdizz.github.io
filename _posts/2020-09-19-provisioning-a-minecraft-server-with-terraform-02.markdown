@@ -48,7 +48,7 @@ In your `main.tf` define an S3 bucket with versioning and encryption enabled and
 
 Run `terraform apply` to create the resources. We haven't yet told Terraform to use the remote backend so it will create state files locally in the `.terraform` directory.
 
-{% highlight bash %}
+{% highlight text %}
     ...
 
     Plan: 2 to add, 0 to change, 0 to destroy.
