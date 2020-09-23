@@ -20,7 +20,7 @@ While you can define all your terraform resources in the same file, it is usuall
     }
 {% endhighlight %}
 
-In addition we also need to define VPC Subnets which are IP blocks for your network that provide public or private IP addresses for the specific Availability Zones in your region.
+In addition we also need to define VPC Subnets which are IP blocks for your network that provide public or private IP addresses for the specific Availability Zones in your region. Reference your VPC id `aws_vpc.main.id` in your subnets. We can start with just one subnet in us-west-2a for now.
 
 {% highlight text %}
     resource "aws_subnet" "usw2a" {
@@ -31,7 +31,7 @@ In addition we also need to define VPC Subnets which are IP blocks for your netw
     }
 {% endhighlight %}
 
-Reference your VPC id `aws_vpc.main.id` in your subnets. We can start with just one subnet in us-west-2a for now. Run `terraform apply` and review and confirm the plan and Terraform will create the VPC and Subnet in your region.
+Run `terraform apply` and review and confirm the plan and Terraform will create the VPC and Subnet in your region.
 
 {% highlight text %}
     # aws_subnet.usw2a will be created
