@@ -31,7 +31,7 @@ Finish creating the user and copy or download the user's access key, then create
 
 ### Initializing a Terraform Project
 
-Create a file `main.tf` at the root of your project directory and define the AWS provider with your region
+Create a file `main.tf` at the root of your project directory and define the AWS provider with your chosen region.
 
 {% highlight text %}
     provider "aws" {
