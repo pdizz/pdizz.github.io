@@ -1,0 +1,44 @@
+CHAPTERS
+- Setup aws and terraform
+- VPC and Minimal EC2 instance server
+    - CHALLENGE: EIP and Route53 hostname
+- modules...
+- building images
+- configuration management
+- data persistence/volumes
+
+
+
+- image build
+    - ami -> ami
+    - pipeline vs patch
+    - iso -> * (vagrant, ami, etc)
+        - images for multiple providers
+    - build numbering???
+    - CHALLENGE: image update -> instance promote -> provision pipeline
+        - world data loss?!?
+- config provisioning
+    - systemd service config
+        - variable (java command resource usage)
+        - install script vs ansible
+    - idempotent/declarative provisioning
+    - ansible
+        - roles, handlers, rabbit hole
+    - ???...???
+- data persistence
+    - minecraft world data volume
+    - CHALENGE: migrating dv to new instance
+    - backup (snapshot) volume/world
+    - CHALENGE: restore from backup
+
+
+
+- api gateway, endpoint to start/stop instance?????
+
+
+- server admin - 
+    - server config, ops, whitelist
+    - plugin install
+        - dynmap, security group 8123
+    - persistence vs provisioning
+
