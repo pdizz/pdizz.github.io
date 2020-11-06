@@ -23,29 +23,29 @@ For permissions either create a group or attach directly the following pre-defin
 
 Finish creating the user and copy or download the user's access key, then create a file in your home directory `~/.aws/credentials` with the contents:
 
-{% highlight text %}
-    [default]
-    aws_access_key_id = AWSACCESSKEYID
-    aws_secret_access_key = thesecretkeygoeshere
+{% highlight ini %}
+[default]
+aws_access_key_id = AWSACCESSKEYID
+aws_secret_access_key = thesecretkeygoeshere
 {% endhighlight %}
 
 ### Initializing a Terraform Project
 
 Create a file `main.tf` at the root of your project directory and define the AWS provider with your chosen region.
 
-{% highlight text %}
-    provider "aws" {
-        region = "us-west-2"
-    }
+{% highlight shell %}
+provider "aws" {
+    region = "us-west-2"
+}
 {% endhighlight %}
 
 In your project directory run `terraform init` to install the AWS provider plugins and initialize your project.
 
-{% highlight text %}
-    Initializing provider plugins...
-    - Finding latest version of hashicorp/aws...
-    - Installing hashicorp/aws v3.7.0...
-    - Installed hashicorp/aws v3.7.0 (signed by HashiCorp)
+{% highlight shell %}
+Initializing provider plugins...
+- Finding latest version of hashicorp/aws...
+- Installing hashicorp/aws v3.7.0...
+- Installed hashicorp/aws v3.7.0 (signed by HashiCorp)
 {% endhighlight %}
 
 Now we're ready to start building AWS resources with Terraform.
@@ -60,68 +60,68 @@ Luckily, creating a remote backend in AWS is pretty simple. It requires only two
 
 In your `main.tf` define an S3 bucket with versioning and encryption enabled and a DynamoDB table with a primary key of `LockID`
 
-{% highlight text %}
-    resource "aws_s3_bucket" "pdizz_tfstate" {
-    bucket = "pdizz-tfstate"
-    # Enable versioning so we can see the full revision history of our
-    # state files
-    versioning {
-        enabled = true
-    }
-    # Enable server-side encryption by default
-        server_side_encryption_configuration {
-            rule {
-                apply_server_side_encryption_by_default {
-                    sse_algorithm = "AES256"
-                }
+{% highlight shell %}
+resource "aws_s3_bucket" "pdizz_tfstate" {
+bucket = "pdizz-tfstate"
+# Enable versioning so we can see the full revision history of our
+# state files
+versioning {
+    enabled = true
+}
+# Enable server-side encryption by default
+    server_side_encryption_configuration {
+        rule {
+            apply_server_side_encryption_by_default {
+                sse_algorithm = "AES256"
             }
         }
     }
-    
-    resource "aws_dynamodb_table" "pdizz_tflocks" {
-    name         = "pdizz-tflocks"
-    billing_mode = "PAY_PER_REQUEST"
-    hash_key     = "LockID"
-        attribute {
-            name = "LockID"
-            type = "S"
-        }
+}
+
+resource "aws_dynamodb_table" "pdizz_tflocks" {
+name         = "pdizz-tflocks"
+billing_mode = "PAY_PER_REQUEST"
+hash_key     = "LockID"
+    attribute {
+        name = "LockID"
+        type = "S"
     }
+}
 {% endhighlight %}
 
 Run `terraform apply` to create the resources. We haven't yet told Terraform to use the remote backend so it will create state files locally in the `.terraform` directory.
 
-{% highlight text %}
-    ...
+{% highlight shell %}
+...
 
-    Plan: 2 to add, 0 to change, 0 to destroy.
+Plan: 2 to add, 0 to change, 0 to destroy.
 
-    Do you want to perform these actions?
-    Terraform will perform the actions described above.
-    Only 'yes' will be accepted to approve.
+Do you want to perform these actions?
+Terraform will perform the actions described above.
+Only 'yes' will be accepted to approve.
 
-    Enter a value: yes
+Enter a value: yes
 
-    aws_dynamodb_table.pdizz_tflocks: Creating...
-    aws_s3_bucket.pdizz_tfstate: Creating...
-    aws_s3_bucket.pdizz_tfstate: Creation complete after 6s [id=pdizz-tfstate]
-    aws_dynamodb_table.pdizz_tflocks: Creation complete after 10s [id=pdizz-tflocks]
+aws_dynamodb_table.pdizz_tflocks: Creating...
+aws_s3_bucket.pdizz_tfstate: Creating...
+aws_s3_bucket.pdizz_tfstate: Creation complete after 6s [id=pdizz-tfstate]
+aws_dynamodb_table.pdizz_tflocks: Creation complete after 10s [id=pdizz-tflocks]
 
-    Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 {% endhighlight %}
 
 Now in `main.tf` you can define the Terraform backend with your S3 bucket and DynamoDB table. The `key` parameter is used for the path within your S3 bucket where the state will be stored. You can use this to organize and store state for multiple environments or projects in the same bucket.
 
-{% highlight text %}
-    terraform {
-        backend "s3" {
-            bucket         = "pdizz-tfstate"
-            key            = "minecraft/terraform.tfstate"
-            region         = "us-west-2"
-            dynamodb_table = "pdizz-tflocks"
-            encrypt        = true
-        }
+{% highlight shell %}
+terraform {
+    backend "s3" {
+        bucket         = "pdizz-tfstate"
+        key            = "minecraft/terraform.tfstate"
+        region         = "us-west-2"
+        dynamodb_table = "pdizz-tflocks"
+        encrypt        = true
     }
+}
 {% endhighlight %}
 
 In your project root run `terraform init`. Terraform will ask if you want to migrate your current state to the new remote backend. Type "yes" and your Terraform state is now managed in AWS.

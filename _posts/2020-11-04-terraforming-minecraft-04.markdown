@@ -15,7 +15,7 @@ So we have the makings of a pipeline to take a minimal CentOS image, install sof
 
 Lets start by creating a very basic ansible project starting with the inventory file. Create a directory `ansible` in your project directory and create a new file `inventory.yaml`. In the inventory we'll define a `minecraft` group that will include our current instance and any others we create in the future. We'll also define a couple of variables for the `minecraft` group to tell Ansible how to access the instances.
 
-{% highlight text %}
+{% highlight ini %}
 [minecraft]
 minecraft.pdizz.com
 
@@ -26,7 +26,7 @@ ansible_ssh_private_key_file=~/minecraft.pem
 
 We also need a playbook to configure the instance. In the `ansible` directory create another file called `playbook.yaml` that will run, as root, on all hosts in the `minecraft` group.
 
-{% highlight text %}
+{% highlight yaml %}
 ---
 - hosts: minecraft
   become: yes
@@ -38,7 +38,7 @@ We also need a playbook to configure the instance. In the `ansible` directory cr
 
 Now we need to create the `minecraft` role with the file `ansible/roles/minecraft/tasks/main.yaml`
 
-{% highlight text %}
+{% highlight yaml %}
 ---
 - name: eula is accepted
   copy:
@@ -68,7 +68,7 @@ This playbook declares that the eula file will exist with the contents "eula=tru
 
 Like with most services, if we make any changes to the Minecraft service config we will need to restart the service for those changes to take effect. To do this we can to define a *handler* that Ansible will run when it detects a change in the configuration. Notice in the Ansible task `minecraft service file is templated` it is configured to `notify: minecraft is restarted` handler if the configuration changes. In a new file `ansible/roles/minecraft/handlers/main.yaml` we can define this handler
 
-{% highlight text %}
+{% highlight yaml %}
 ---
 - name: minecraft is restarted
   service:
@@ -78,7 +78,7 @@ Like with most services, if we make any changes to the Minecraft service config 
 
 Now if and only if the task `minecraft service file is templated` detects a change to the file, Ansible will run the handler and restart the Minecraft service. Speaking of templates, we still need to create the template for the service config in `ansible/roles/minecraft/templates/minecraft.service.j2`
 
-{% highlight text %}
+{% highlight ini %}
 # /usr/lib/systemd/system/minecraftd.service
 [Unit]
 Description=The Minecraft Server
@@ -122,22 +122,22 @@ We started off running our server on a `t3a.medium` instance with 2x2.5GHz CPUs 
 
 To take advantage of the added hardware we'll need to update the template for our Minecraft service config. Eventually we might be running multiple servers on different sized instances so we should add a couple variables to our Minecraft service template using Ansible/Jinja template variable syntax {% raw %}`{{ my_var }}`{% endraw %}
 
-{% raw %}
-    # /usr/lib/systemd/system/minecraftd.service
-    [Unit]
-    Description=The Minecraft Server
-    After=network.target
+{% highlight ini %}
+# /usr/lib/systemd/system/minecraftd.service
+[Unit]
+Description=The Minecraft Server
+After=network.target
 
-    [Service]
-    Type=simple
-    User=minecraft
-    WorkingDirectory=/opt/minecraft
-    ExecStart=/usr/bin/java -Xms{{ java_initial_heap_size }} -Xmx{{ java_max_heap_size }} -XX:+UseG1GC -jar server.jar --nogui
-    Restart=on-failure
+[Service]
+Type=simple
+User=minecraft
+WorkingDirectory=/opt/minecraft
+ExecStart=/usr/bin/java -Xms{%raw%}{{ java_initial_heap_size }}{%endraw%} -Xmx{%raw%}{{ java_max_heap_size }}{%endraw%} -XX:+UseG1GC -jar server.jar --nogui
+Restart=on-failure
 
-    [Install]
-    WantedBy=multi-user.target
-{% endraw %}
+[Install]
+WantedBy=multi-user.target
+{% endhighlight %}
 
 We can define values for these variables for each host in our Ansible `inventory.yaml` with different values for each host
 
