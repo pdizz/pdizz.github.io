@@ -5,6 +5,12 @@ permalink: /code/
 order: 2
 ---
 
+## Terraforming Minecraft
+
+Exploring DevOps and SRE principles by building and maintaining a Minecraft server with Packer, Terraform and Ansible.
+
+[source...](https://github.com/pdizz/terraforming_minecraft)
+
 ## TES Alchemy Lab
 
 Skyrim alchemy recipe finder. Select an ingredient, and other ingredients with matching effects are highlighted. 
