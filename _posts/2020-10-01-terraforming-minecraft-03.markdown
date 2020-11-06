@@ -27,104 +27,103 @@ Packer is a tool for creating machine images. Packer works by using a pre-existi
 
 So to build a custom AMI for our Minecraft server we can simply start with the minimal CentOS AMI we're already using, run the installation script, and build a new AMI. Create a new directory in your project root called `images` or something for your image build scripts and create a packer file called `ami-build.json`. You'll need to tell Packer to use the `amazon-ebs` builder and provide the `source_ami` id and an ec2 instance type so it can launch a temporary EC2 instance on your behalf. Then you need to configure a `shell` provisioner to run your installation script once the machine is running.
 
-{% raw %}
-    {
-        "builders": [
-            {
-                "type": "amazon-ebs",
-                "region": "us-west-2",
-                "source_ami": "ami-0bc06212a56393ee1",
-                "instance_type": "t3a.micro",
-                "ssh_username": "centos",
-                "ssh_keypair_name": "minecraft_build",
-                "ami_name": "my-minecraft-ami",
-                "ena_support": "true",
-                "ssh_private_key_file": "~/minecraft_build.pem",
-                "tags": {
-                    "Name": "minecraft",
-                    "Description": "minecraft server image"
-                }
+{% highlight json %}
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "region": "us-west-2",
+            "source_ami": "ami-0bc06212a56393ee1",
+            "instance_type": "t3a.micro",
+            "ssh_username": "centos",
+            "ssh_keypair_name": "minecraft_build",
+            "ami_name": "my-minecraft-ami",
+            "ena_support": "true",
+            "ssh_private_key_file": "~/minecraft_build.pem",
+            "tags": {
+                "Name": "minecraft",
+                "Description": "minecraft server image"
             }
-        ],
-        "provisioners": [
-            {
-                "type": "shell",
-                "execute_command": "echo 'centos' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-                "scripts": [
-                    "images/scripts/minecraft-install.sh"
-                ]
-            }
-        ]
-    }
-
-{% endraw %}
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "execute_command": "echo 'centos' | {%raw%}{{.Vars}}{%endraw%} sudo -S -E bash '{%raw%}{{.Path}}{%endraw%}'",
+            "scripts": [
+                "images/scripts/minecraft-install.sh"
+            ]
+        }
+    ]
+}
+{% endhighlight %}
 
 And the installation script `build/scripts/minecraft-install.sh`...
 
-{% highlight text %}
-    # create minecraft user with no login
-    sudo useradd --shell /bin/false --home-dir /opt/minecraft minecraft
+{% highlight shell %}
+# create minecraft user with no login
+sudo useradd --shell /bin/false --home-dir /opt/minecraft minecraft
 
-    sudo yum -y install wget java
-    sudo wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar # 1.16.3
+sudo yum -y install wget java
+sudo wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar # 1.16.3
 
-    sudo echo "eula=true" > /opt/minecraft/eula.txt
+sudo echo "eula=true" > /opt/minecraft/eula.txt
 {% endhighlight %}
 
 From your project root run `packer build images/packer/ami-build.json` and packer will launch an EC2 instance from the CentOS AMI, run the install script, and create a new AMI.
 
-{% highlight text %}
-    ==> amazon-ebs: Waiting for instance (i-07bd7b60ef591d691) to become ready...
-    ==> amazon-ebs: Waiting for SSH to become available...
-    ==> amazon-ebs: Connected to SSH!
-    ==> amazon-ebs: Provisioning with shell script: build/scripts/minecraft-install.sh
-    ...
-    ==> amazon-ebs: Stopping the source instance...
-    ...
-    Build 'amazon-ebs' finished.
+{% highlight shell %}
+==> amazon-ebs: Waiting for instance (i-07bd7b60ef591d691) to become ready...
+==> amazon-ebs: Waiting for SSH to become available...
+==> amazon-ebs: Connected to SSH!
+==> amazon-ebs: Provisioning with shell script: build/scripts/minecraft-install.sh
+...
+==> amazon-ebs: Stopping the source instance...
+...
+Build 'amazon-ebs' finished.
 
-    ==> Builds finished. The artifacts of successful builds are:
-    --> amazon-ebs: AMIs were created:
-    us-west-2: ami-04e29ccba116723ce
+==> Builds finished. The artifacts of successful builds are:
+--> amazon-ebs: AMIs were created:
+us-west-2: ami-04e29ccba116723ce
 {% endhighlight %}
 
 It would be nice to have some way to keep track of our AMIs with an id or build number, and to be able to choose different source AMIs so lets add a couple variables to our packer file and use those values for our `source_ami`, `ami_name` and `tags`.
 
-{% raw %}
-    {
-        "variables": {
-            "build_number": "",
-            "source_ami": ""
-        },
-        "builders": [
-            {
-                "type": "amazon-ebs",
-                "region": "us-west-2",
-                "source_ami": "{{user `source_ami`}}",
-                "instance_type": "t3a.micro",
-                "ssh_username": "centos",
-                "ssh_keypair_name": "minecraft_build",
-                "ami_name": "minecraft-{{user `build_number`}}",
-                "ena_support": "true",
-                "ssh_private_key_file": "~/minecraft_build.pem",
-                "tags": {
-                    "Name": "minecraft",
-                    "build": "{{user `build_number`}}",
-                    "Description": "minecraft build {{user `build_number`}}"
-                }
+{% highlight json %}
+{
+    "variables": {
+        "build_number": "",
+        "source_ami": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "region": "us-west-2",
+            "source_ami": "{%raw%}{{user `source_ami`}}{%endraw%}",
+            "instance_type": "t3a.micro",
+            "ssh_username": "centos",
+            "ssh_keypair_name": "minecraft_build",
+            "ami_name": "minecraft-{%raw%}{{user `build_number`}}{%endraw%}",
+            "ena_support": "true",
+            "ssh_private_key_file": "~/minecraft_build.pem",
+            "tags": {
+                "Name": "minecraft",
+                "build": "{%raw%}{{user `build_number`}}{%endraw%}",
+                "Description": "minecraft build {%raw%}{{user `build_number`}}{%endraw%}"
             }
-        ],
-        "provisioners": [
-            {
-                "type": "shell",
-                "execute_command": "echo 'centos' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-                "scripts": [
-                    "build/scripts/minecraft-install.sh"
-                ]
-            }
-        ]
-    }
-{% endraw %}
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "execute_command": "echo 'centos' | {%raw%}{{.Vars}}{%endraw%} sudo -S -E bash '{%raw%}{{.Path}}{%endraw%}'",
+            "scripts": [
+                "build/scripts/minecraft-install.sh"
+            ]
+        }
+    ]
+}
+{% endhighlight %}
 
 Now you can specify different source AMIs to build from and keep track of your custom AMIs with a build number. How you choose to do that is up to you.
 
