@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Provisioning a Minecraft Server with Terraform - Intro and Project Setup"
+title:  "Terraforming Minecraft - Intro and Project Setup"
 date:   2020-09-10 0:00:00 -0700
 categories: devops terraform aws minecraft
 series: minecraft-terraform

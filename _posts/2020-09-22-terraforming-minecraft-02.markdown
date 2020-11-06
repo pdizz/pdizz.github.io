@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Provisioning a Minecraft Server with Terraform - Launching a Minimal Minecraft Server"
+title:  "Terraforming Minecraft - Launching a Minimal Minecraft Server"
 date:   2020-09-22 0:00:00 -0700
 categories: devops terraform aws minecraft
 series: minecraft-terraform
