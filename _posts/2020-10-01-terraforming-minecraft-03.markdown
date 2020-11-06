@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Provisioning a Minecraft Server with Terraform - Building Custom AMIs with Packer"
+title:  "Terraforming Minecraft - Building Custom AMIs with Packer"
 date:   2020-10-01 0:00:00 -0700
 categories: devops packer terraform aws minecraft
 series: minecraft-terraform
@@ -27,7 +27,7 @@ Packer is a tool for creating machine images. Packer works by using a pre-existi
 
 So to build a custom AMI for our Minecraft server we can simply start with the minimal CentOS AMI we're already using, run the installation script, and build a new AMI. Create a new directory in your project root called `images` or something for your image build scripts and create a packer file called `ami-build.json`. You'll need to tell Packer to use the `amazon-ebs` builder and provide the `source_ami` id and an ec2 instance type so it can launch a temporary EC2 instance on your behalf. Then you need to configure a `shell` provisioner to run your installation script once the machine is running.
 
-{% highlight text %}
+{% raw %}
     {
         "builders": [
             {
@@ -57,7 +57,7 @@ So to build a custom AMI for our Minecraft server we can simply start with the m
         ]
     }
 
-{% endhighlight %}
+{% endraw %}
 
 And the installation script `build/scripts/minecraft-install.sh`...
 
@@ -90,7 +90,7 @@ From your project root run `packer build images/packer/ami-build.json` and packe
 
 It would be nice to have some way to keep track of our AMIs with an id or build number, and to be able to choose different source AMIs so lets add a couple variables to our packer file and use those values for our `source_ami`, `ami_name` and `tags`.
 
-{% highlight text %}
+{% raw %}
     {
         "variables": {
             "build_number": "",
@@ -124,7 +124,7 @@ It would be nice to have some way to keep track of our AMIs with an id or build 
             }
         ]
     }
-{% endhighlight %}
+{% endraw %}
 
 Now you can specify different source AMIs to build from and keep track of your custom AMIs with a build number. How you choose to do that is up to you.
 
