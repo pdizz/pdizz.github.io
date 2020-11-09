@@ -71,9 +71,10 @@ Like with most services, if we make any changes to the Minecraft service config 
 {% highlight yaml %}
 ---
 - name: minecraft is restarted
-  service:
+  systemd:
     name: minecraft
     state: restarted
+    daemon_reload: yes
 {% endhighlight %}
 
 Now if and only if the task `minecraft service file is templated` detects a change to the file, Ansible will run the handler and restart the Minecraft service. Speaking of templates, we still need to create the template for the service config in `ansible/roles/minecraft/templates/minecraft.service.j2`
