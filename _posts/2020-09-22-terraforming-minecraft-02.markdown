@@ -130,7 +130,7 @@ resource "aws_security_group" "minecraft" {
         from_port   = 22
         to_port     = 22
         protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["77.191.142.21/32"] # Your IP address here
     }
     
     ingress {
@@ -216,7 +216,7 @@ Now you should have a working Minecraft server with a public IP address you can 
 
 ### Staking your Claim
 
-To give our Minecraft server a static IP address, we can give it an Elastic IP, which is a static IP address that can be attached to an EC2 instance or other AWS resources. In `ec2.tf` define an `aws_eip` resource to claim a static IP for your server. If you ever need to replace your server with a new instance you (or Terraform) can attach just the Elastic IP to the new instance.
+To give our Minecraft server a static IP address, we can give it an Elastic IP, which is a static IP address that can be attached to an EC2 instance or other AWS resources. In `ec2.tf` define an `aws_eip` resource to claim a static IP for your server. If you ever need to replace your server with a new instance you (or Terraform) can just attach the Elastic IP to the new instance.
 
 {% highlight shell %}
 resource "aws_eip" "minecraft" {

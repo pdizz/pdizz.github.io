@@ -77,20 +77,42 @@ Like with most services, if we make any changes to the Minecraft service config 
     daemon_reload: yes
 {% endhighlight %}
 
-Now if and only if the task `minecraft service file is templated` detects a change to the file, Ansible will run the handler and restart the Minecraft service. Speaking of templates, we still need to create the template for the service config in `ansible/roles/minecraft/templates/minecraft.service.j2`
+Now if and only if the task `minecraft service file is templated` detects a change to the file, Ansible will run the handler and restart the Minecraft service. 
+
+Speaking of templates, we still need to create the template for the service config. Using Screen we can tap into the Minecraft Server console to run commands, like saving everything and warning our users before shutting down the server. Google yields a few examples of systemd service configs to run Minecraft using Screen. Following [this example](https://minecraft.gamepedia.com/Tutorials/Server_startup_script) I came up with a template for `ansible/roles/minecraft/templates/minecraft.service.j2`
 
 {% highlight ini %}
-# /usr/lib/systemd/system/minecraftd.service
+# /usr/lib/systemd/system/minecraft.service
 [Unit]
 Description=The Minecraft Server
 After=network.target
 
 [Service]
-Type=simple
-User=minecraft
 WorkingDirectory=/opt/minecraft
-ExecStart=/usr/bin/java -Xms3072M -Xmx3072M -XX:+UseG1GC -jar server.jar --nogui
+
+User=minecraft
+Group=minecraft
+PrivateUsers=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
 Restart=on-failure
+RestartSec=60s
+
+ExecStart=/bin/sh -c '/usr/bin/screen -DmS minecraft /usr/bin/java -Xms3072M -Xmx3072M -XX:+UseG1GC -jar server.jar --nogui'
+
+ExecReload=/usr/bin/screen -p 0 -S minecraft -X eval 'stuff "reload"\\015'
+
+ExecStop=/usr/bin/screen -p 0 -S minecraft -X eval 'stuff "say SERVER SHUTTING DOWN IN 10 SECONDS..."\015'
+ExecStop=/bin/sleep 5
+ExecStop=/usr/bin/screen -p 0 -S minecraft -X eval 'stuff "say SERVER SHUTTING DOWN IN 5 SECONDS..."\015'
+ExecStop=/bin/sleep 5
+ExecStop=/usr/bin/screen -p 0 -S minecraft -X eval 'stuff "save-all"\015'
+ExecStop=/usr/bin/screen -p 0 -S minecraft -X eval 'stuff "stop"\015'
+ExecStop=/bin/sleep 10
 
 [Install]
 WantedBy=multi-user.target
@@ -124,23 +146,10 @@ We started off running our server on a `t3a.medium` instance with 2x2.5GHz CPUs 
 To take advantage of the added hardware we'll need to update the template for our Minecraft service config. Eventually we might be running multiple servers on different sized instances so we should add a couple variables to our Minecraft service template using Ansible/Jinja template variable syntax {% raw %}`{{ my_var }}`{% endraw %}
 
 {% highlight ini %}
-# /usr/lib/systemd/system/minecraftd.service
-[Unit]
-Description=The Minecraft Server
-After=network.target
-
-[Service]
-Type=simple
-User=minecraft
-WorkingDirectory=/opt/minecraft
-ExecStart=/usr/bin/java -Xms{%raw%}{{ java_initial_heap_size }}{%endraw%} -Xmx{%raw%}{{ java_max_heap_size }}{%endraw%} -XX:+UseG1GC -jar server.jar --nogui
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
+ExecStart=/bin/sh -c '/usr/bin/screen -DmS minecraft /usr/bin/java -Xms{%raw%}{{ java_initial_heap_size }}{%endraw%} -Xmx{%raw%}{{ java_max_heap_size }}{%endraw%} -XX:+UseG1GC -jar server.jar --nogui'
 {% endhighlight %}
 
-We can define values for these variables for each host in our Ansible `inventory.yaml` with different values for each host
+We can define different values for these variables for each host in our Ansible inventory.
 
 {% highlight text %}
 [minecraft]
@@ -153,13 +162,13 @@ ansible_ssh_user=centos
 ansible_ssh_private_key_file=~/minecraft.pem
 {% endhighlight %}
 
-Now when we run our playbook again the result of `minecraft service file is templated` should be `changed` and the `minecraft is restarted` handler should run to apply those changes.
+Now when we run our playbook again the result of `minecraft service file is templated` should be `changed` and the `minecraft is restarted` handler will run to restart the service.
 
 > There are countless ways to organize an Ansible project, from putting everything in one file, to splitting group and host vars into separate directories. This is just one example of a basic project setup that should be adequate for a project this size
 
 ### Declarative Style and Idempotency in Ansible Playbooks
 
-You may have noticed the funky naming convention I'm using for Ansible tasks like `eula is accepted` and `minecraft service file is templated`. Tasks names are arbitrary (you dont even need to name tasks at all) but I think it helps to train our brains to read and think in a *declarative* style. We should declaratively state "the file exists" instead of imperatively "create the file", or "the service is running" instead of "start the service", and let Ansible figure out the rest. 
+You may have noticed the funky naming convention I'm using for Ansible tasks like `eula is accepted` and `minecraft service file is templated`. Task names are arbitrary (you dont even need to name tasks at all) but I think it helps to train our brains to read and think in a *declarative* style. We should declaratively state "the file exists" instead of imperatively "create the file", or "the service is running" instead of "start the service", and let Ansible figure out the rest. 
 
 The most reliable Ansible playbooks are totally idempotent. We should be able to run them any number of times, without assuming anything about the current state of the configuration, and always end up with the desired result. Playbooks that depend on the current configuration being in a certain state are very error prone. If your playbooks are littered with conditionals, or if you are afraid to run a playbook because it might do something unexpected, you're doing it wrong.
 

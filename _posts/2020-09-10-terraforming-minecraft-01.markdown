@@ -7,7 +7,7 @@ series: minecraft-terraform
 order: 1
 ---
 
-In this series I want to explore techniques for managing software infrastructure in AWS by building a mincraft server. I'm hoping it will be a fun exercize, but the challenges we run into by building, maintaining and upgrading a minecraft server in the cloud mirror many of the same challenges found in other software projects. Crafting reliable ifrastructure-as-code, upgrading software and infrastructure, deploying changes, maintaining availability are challenges common to many other software projects and the techniques we learn here can be applied to projects in many other domains.
+In this series I want to explore techniques for managing software infrastructure in AWS by building a mincraft server. I'm hoping it will be a fun exercize, but the challenges we run into by building, maintaining and upgrading a minecraft server in the cloud mirror many of the same challenges found in other software projects. Crafting reliable infrastructure-as-code, upgrading software and infrastructure, deploying changes, maintaining availability are challenges common to many other software projects and the techniques we learn here can be applied to projects in many other domains.
 
 ### Creating an IAM User for Terraform
 
@@ -54,7 +54,7 @@ Now we're ready to start building AWS resources with Terraform.
 
 Rather than jumping in and launching servers we should take a moment to create a couple resources to support our Terraform project. Terraform keeps track of the resources it manages using state files. By default these state files are stored locally in your terraform project, but I would highly recommend configuring a remote backend for Terraform state, especially if you are working with a team. Terraform remote backends allow you to reliably share Terraform state with others and lock that state to prevent conflicts from multiple developers changing state concurrently.
 
-> Check out Yevgeniy Brikman' excellent [A Comprehensive Guide to Terraform](https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca), particularly "How to manage Terraform state" and "How to use Terraform as a team" for a deeper look at these concepts.
+> Check out Yevgeniy Brikman's excellent [A Comprehensive Guide to Terraform](https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca), particularly "How to manage Terraform state" and "How to use Terraform as a team" for a deeper look at these concepts.
 
 Luckily, creating a remote backend in AWS is pretty simple. It requires only two resources: an Amazon S3 bucket to hold your state files and a DynamoDB table for the locks, and we can use Terraform to create these resources as well.
 

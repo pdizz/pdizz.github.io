@@ -7,7 +7,7 @@ series: minecraft-terraform
 order: 3
 ---
 
-At this point we have a working Minecraft server built with Terraform. More importantly, we already have all of the resources we need, defined in our Terraform project, to create any number of Minecraft servers. In fact we could launch fully on-demand Minecraft servers at any time with the push of a button, right? Well, there are a few glaring issues with oure current approach that need to be addressed.
+At this point we have a working Minecraft server built with Terraform. More importantly, we already have all of the resources we need, defined in our Terraform project, to create any number of Minecraft servers. In fact we could launch fully on-demand Minecraft servers at any time with the push of a button, right? Well, there are a few glaring issues with our current approach that need to be addressed.
 
 > Software is constantly changing. New versions are released and old versions are deprecated. The softare you rely on today may not be available tomorrow. There is no guarantee that that your install script will work every time, and eventually it will stop working all together.
 
@@ -64,7 +64,7 @@ And the installation script `build/scripts/minecraft-install.sh`...
 # create minecraft user with no login
 sudo useradd --shell /bin/false --home-dir /opt/minecraft minecraft
 
-sudo yum -y install wget java
+sudo yum -y install wget java screen
 sudo wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar # 1.16.3
 
 sudo echo "eula=true" > /opt/minecraft/eula.txt
@@ -125,7 +125,7 @@ It would be nice to have some way to keep track of our AMIs with an id or build 
 }
 {% endhighlight %}
 
-Now you can specify different source AMIs to build from and keep track of your custom AMIs with a build number. How you choose to do that is up to you.
+You can set these variables in the packer command like `packer build -var build_number=1 -var source_ami=ami-0bc06212a56393ee1 packer/ami_build.json`. Now you can specify different source AMIs to build from and keep track of your custom AMIs with a build number. How you choose to do that is up to you.
 
 ### Strategies for Managing Images
 
@@ -135,7 +135,7 @@ There are two distinct strategies we can use to apply changes to our images. The
 
 The incremental method is to always base the new image on the previous version and only worry about one small change at a time. We've already seen that Packer can use any source AMI, including any of your custom AMIs, to build a new image. The advantage to this is that it can be very fast to develop, test, and deploy a single small change like this. The disadvantage to this method is that, because you are only concerned with the change from one version to the next, you lose the ability to completely recreate the image from scratch if necessary. 
 
-Changes and mistakes can compound over time in what I call *configuration drift*. The longer you maintain a system the more chances the gremlins have to go to work on it, or maybe I'm just superstitious... While you can generally roll back a few versions to a previous image, it's never a guarantee. You may discover some update several versions ago caused a bug that has been hiding out ever since. By that time your application may have changed enough that it wont work on the last known good image.
+Changes and mistakes can compound over time and you get *configuration drift*. The longer you maintain a system the more chances the gremlins have to go to work on it, or maybe I'm just superstitious... While you can generally roll back a few versions to a previous image, it's never a guarantee. You may discover some update several versions ago caused a bug that has been hiding out ever since. By that time your application may have changed enough that it wont work on the last known good image.
 
 #### The Pipeline Method
 
@@ -144,3 +144,28 @@ The method I prefer is to always build new images from a pristine source AMI, us
 With this method you can build a base image with common software packages installed, and use that to build images for different application environments like pre-production and production that have may have some extra packages but still come from the same base image. You can even build images for multiple different cloud providers at once from a single source image with more certainty that they will be consistent in all providers
 
 > Many projects will benefit from a combination of these two methods. For example a pipeline to build major versions of your image from a clean source, but with small incremental updates before the next major image is built.
+
+### Referencing Images in Terraform
+
+Probably the simplest way to tell Terraform to use our custom AMI is to just hardcode the `ami` parameter of our `aws_instance`, and any time we build a new image we could update the ami id in the config. This could probably work for a small project like this, but for more precise control we can use the `aws_ami` data source.
+
+{% highlight shell %}
+data "aws_ami" "minecraft" {
+  owners           = ["self"]
+  most_recent      = true
+
+  filter {
+    name   = "name"
+    values = ["minecraft-*"]
+  }
+}
+
+resource "aws_instance" "minecraft" {
+  ami           = data.aws_ami.minecraft.id
+  instance_type = "t3a.medium"
+  key_name      = "minecraft"
+
+...
+{% endhighlight %}
+
+For now I'm just grabbing the most recent AMI named `minecraft-*` but we could also filter on other AMI properties or use tags like `latest` and `stable` to control what image is deployed and when.
