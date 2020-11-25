@@ -67,7 +67,7 @@ sudo useradd --shell /bin/false --home-dir /opt/minecraft minecraft
 sudo yum -y install wget java screen
 sudo wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar # 1.16.3
 
-sudo echo "eula=true" > /opt/minecraft/eula.txt
+sudo chown -R minecraft.minecraft /opt/minecraft
 {% endhighlight %}
 
 From your project root run `packer build images/packer/ami-build.json` and packer will launch an EC2 instance from the CentOS AMI, run the install script, and create a new AMI.
