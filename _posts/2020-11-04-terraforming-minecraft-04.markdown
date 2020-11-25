@@ -9,7 +9,9 @@ order: 4
 
 So we have the makings of a pipeline to take a minimal CentOS image, install software and create our own custom AMI's to launch any number of functional Minecraft servers in AWS EC2 instances. As it stands every server would be identical, but not all servers and instances are created equal. Servers with more users will require a larger instance and will need to be configured to take advantage of the extra hardware. Ansible is the tool we'll use for managing configuration on active instances.
 
-> Ansible is often called a **provisioning** tool, but I think we should make a distinction between **provisioning**, i.e. creating infrastructure like AWS VPCs and instances, and **configuration management** which manages the configuration of the operating system on the instance. While Ansible is fully capable of launching instances and other AWS resources it is not ideal. Like with Terraform, the strength of Ansible is in it's declarative, idempotent style which allows us to describe our desired configuration without making any assumptions about it's current state. Ansible's declarative style works well for configuration but starts to break down when trying to provision infrastructure, which is where Terraform really shines.
+> Ansible is often called a **provisioning** tool, but I think we should make a distinction between **provisioning**, i.e. creating infrastructure like AWS VPCs and instances, and **configuration management** which manages the configuration of the operating system on the instance. 
+
+While Ansible is fully capable of launching instances and other AWS resources it is not ideal. Like with Terraform, the strength of Ansible is in it's declarative, idempotent style which allows us to describe our desired configuration without making any assumptions about it's current state. Ansible's declarative style works well for configuration but starts to break down when trying to provision infrastructure, which is where Terraform really shines.
 
 ### Creating an Ansible Project
 
