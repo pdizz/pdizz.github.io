@@ -15,8 +15,8 @@ While you can define all your terraform resources in the same file, it is usuall
 
 {% highlight shell %}
 resource "aws_vpc" "main" {
-    cidr_block       = "172.33.0.0/24"
-    instance_tenancy = "default"
+  cidr_block       = "172.16.0.0/24"
+  instance_tenancy = "default"
 }
 {% endhighlight %}
 
@@ -24,14 +24,14 @@ In addition we also need to define VPC Subnets which are IP blocks for your netw
 
 {% highlight shell %}
 resource "aws_subnet" "usw2a_public" {
-    vpc_id     = aws_vpc.main.id
-    cidr_block = "172.33.0.0/26"
-    map_public_ip_on_launch = true
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "172.16.0.0/26"
+  map_public_ip_on_launch = true
     
-    tags = {
-        Name = "usw2a-public"
-    }
-}   
+  tags = {
+    Name = "minecraft"
+  }
+}
 {% endhighlight %}
 
 Run `terraform apply` and review and confirm the plan and Terraform will create the VPC and Subnet in your region.
@@ -54,29 +54,29 @@ First define an internet gateway resource attached to your VPC, then a route tab
 
 {% highlight shell %}
 resource "aws_internet_gateway" "main" {
-    vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-    tags = {
-        Name = "main"
-    }
+  tags = {
+    Name = "minecraft"
+  }
 }
 
 resource "aws_route_table" "public" {
-    vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-    route {
-        cidr_block = "0.0.0.0/0"
-        gateway_id = aws_internet_gateway.main.id
-    }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
 
-    tags = {
-        Name = "public"
-    }
+  tags = {
+    Name = "minecraft"
+  }
 }
 
 resource "aws_route_table_association" "usw2a_public" {
-    subnet_id      = aws_subnet.usw2a_public.id
-    route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.usw2a_public.id
+  route_table_id = aws_route_table.public.id
 }
 {% endhighlight %}
 
@@ -106,12 +106,16 @@ Finally we need to specify an AMI. You can use any linux flavor you choose like 
 
 {% highlight shell %}
 resource "aws_instance" "minecraft" {
-    ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
-    instance_type = "t3a.medium"
-    key_name      = "minecraft"
+  ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
+  instance_type = "t3a.medium"
+  key_name      = "minecraft"
 
-    availability_zone = "us-west-2a"
-    subnet_id = aws_subnet.usw2a_public.id
+  availability_zone = "us-west-2a"
+  subnet_id = aws_subnet.usw2a_public.id
+
+  root_block_device {
+    delete_on_termination = true
+  }
 }
 {% endhighlight %}
 
@@ -121,40 +125,49 @@ You should also create a security group for the instance, which will allow acces
 
 {% highlight shell %}
 resource "aws_security_group" "minecraft" {
-    name        = "minecraft"
-    description = "minecraft server"
-    vpc_id      = aws_vpc.main.id
+  name        = "minecraft"
+  description = "minecraft server"
+  vpc_id      = aws_vpc.main.id
 
-    ingress {
-        description = "ssh"
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        cidr_blocks = ["77.191.142.21/32"] # Your IP address here
-    }
-    
-    ingress {
-        description = "minecraft game"
-        from_port   = 25565
-        to_port     = 25565
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+  ingress {
+    description = "ssh"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["77.191.142.21/32"]
+  }
+  
+  ingress {
+    cidr_blocks      = ["0.0.0.0/0"]
+    description      = "ping"
+    from_port        = 8
+    protocol         = "icmp"
+    self             = false
+    to_port          = -1
+  }
 
-    ingress {
-        description = "minecraft game UDP"
-        from_port   = 25565
-        to_port     = 25565
-        protocol    = "udp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+  ingress {
+    description = "minecraft game"
+    from_port   = 25565
+    to_port     = 25565
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-    egress {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+  ingress {
+    description = "minecraft game UDP"
+    from_port   = 25565
+    to_port     = 25565
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 {% endhighlight %}
 
@@ -162,14 +175,18 @@ Now associate the security group in your ec2 instance resource.
 
 {% highlight shell %}
 resource "aws_instance" "minecraft" {
-    ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
-    instance_type = "t3a.medium"
-    key_name      = "minecraft"
+  ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
+  instance_type = "t3a.medium"
+  key_name      = "minecraft"
 
-    vpc_security_group_ids = [aws_security_group.minecraft.id]
+  vpc_security_group_ids = [aws_security_group.minecraft.id]
 
-    availability_zone = "us-west-2a"
-    subnet_id = aws_subnet.usw2a_public.id
+  availability_zone = "us-west-2a"
+  subnet_id = aws_subnet.usw2a_public.id
+
+  root_block_device {
+      delete_on_termination = true
+  }
 }
 {% endhighlight %}
 
@@ -177,24 +194,28 @@ Once the instance is running, we could log in and run the commands to install Mi
 
 {% highlight shell %}
 resource "aws_instance" "minecraft" {
-    ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
-    instance_type = "t3a.medium"
-    key_name      = "minecraft"
+  ami           = "ami-0bc06212a56393ee1" # centos 7 minimal
+  instance_type = "t3a.medium"
+  key_name      = "minecraft"
 
-    vpc_security_group_ids = [aws_security_group.minecraft.id]
+  vpc_security_group_ids = [aws_security_group.minecraft.id]
 
-    availability_zone = "us-west-2a"
-    subnet_id = aws_subnet.usw2a_public.id
+  availability_zone = "us-west-2a"
+  subnet_id = aws_subnet.usw2a_public.id
 
-    user_data = <<-EOF
-        #!/bin/bash
-        yum -y install java
-        useradd --shell /bin/false --home-dir /opt/minecraft minecraft
-        yum -y install wget
-        wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar
-        echo "eula=true" > /opt/minecraft/eula.txt
-        cd /opt/minecraft && nohup /usr/bin/java -Xms2048M -Xmx2048M -XX:+UseG1GC -jar server.jar nogui &
-        EOF
+  root_block_device {
+    delete_on_termination = true
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    yum -y install java
+    useradd --shell /bin/false --home-dir /opt/minecraft minecraft
+    yum -y install wget
+    wget -qO /opt/minecraft/server.jar https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar
+    echo "eula=true" > /opt/minecraft/eula.txt
+    cd /opt/minecraft && nohup /usr/bin/java -Xms2048M -Xmx2048M -XX:+UseG1GC -jar server.jar nogui &
+    EOF
 }
 {% endhighlight %}
 
@@ -220,8 +241,8 @@ To give our Minecraft server a static IP address, we can give it an Elastic IP, 
 
 {% highlight shell %}
 resource "aws_eip" "minecraft" {
-    instance = aws_instance.minecraft.id
-    vpc      = true
+  instance = aws_instance.minecraft.id
+  vpc      = true
 }
 {% endhighlight %}
 
@@ -229,10 +250,10 @@ Finally, if you're already managing your domain in Route53, define a Route53 rec
 
 {% highlight shell %}
 resource "aws_route53_record" "pdizz_minecraft" {
-    zone_id = "ZJO2WR3LOVAR9D"
-    name    = "minecraft.pdizz.com"
-    type    = "A"
-    ttl     = "300"
-    records = [aws_eip.minecraft.public_ip]
+  zone_id = "ZJO2WR3LOVAR9D"
+  name    = "minecraft.pdizz.com"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.minecraft.public_ip]
 }
 {% endhighlight %}
