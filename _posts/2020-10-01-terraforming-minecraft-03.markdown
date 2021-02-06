@@ -25,6 +25,8 @@ The solution is to capture our application environment in a known working state 
 
 Packer is a tool for creating machine images. Packer works by using a pre-existing image to launch a virtual machine, then runs commands to make changes to that environment. Then it repackages that state into a new image. While all the steps to create an AMI (Amazon Machine Image) can be done manually through the console, Packer can automate the process and make it repeatable. Packer can also build identical images for other VM and cloud providers at the same time.
 
+> Already have a local VM you want to use? Check out [Building a Custom AMI from an Existing Image]({% post_url 2021-02-06-building-ami-from-external-image %})
+
 So to build a custom AMI for our Minecraft server we can simply start with the minimal CentOS AMI we're already using, run the installation script, and build a new AMI. Create a new directory in your project root called `images` or something for your image build scripts and create a packer file called `ami-build.json`. You'll need to tell Packer to use the `amazon-ebs` builder and provide the `source_ami` id and an ec2 instance type so it can launch a temporary EC2 instance on your behalf. Then you need to configure a `shell` provisioner to run your installation script once the machine is running.
 
 {% highlight json %}
